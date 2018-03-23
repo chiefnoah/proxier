@@ -62,14 +62,18 @@ func main() {
 func newRedirectProxy(target *url.URL, rewriteHost bool) *httputil.ReverseProxy {
 	targetQuery := target.RawQuery
 	director := func(req *http.Request) {
+		originalURL := req.URL.String()
+		//If the target URL ends with a "/", we want to remove the basepath from the route, the same way nginx does it.
 		if strings.HasSuffix(target.String(), "/") {
-			log.Printf("Redirecting %s to %s", req.URL.String(), target.String()+req.URL.Path)
+			req.URL.Path = strings.Join(strings.Split(strings.Trim(req.URL.Path, "/"), "/")[1:], "/") //This is really ugly
+			log.Printf("Removing path from target: %s", req.URL.Path)
 		} else {
-			log.Printf("Redirecting %s to %s", req.URL.String(), target.String())
+			req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
 		}
+		log.Printf("Redirecting %s to %s", originalURL, req.URL.String())
 		req.URL.Scheme = target.Scheme
 		req.URL.Host = target.Host
-		req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
+		req.URL.Path = path.Join(target.Path, req.URL.Path) //singleJoiningSlash(target.Path, req.URL.Path)
 
 		if rewriteHost {
 			req.Host = target.Host
@@ -102,24 +106,29 @@ func singleJoiningSlash(a, b string) string {
 //I did this wrong. See here for a reference: https://stackoverflow.com/questions/32542282/how-do-i-rewrite-urls-in-a-proxy-response-in-nginx
 func makeTargetURL(p, t string) *url.URL {
 	var base *url.URL
-	if strings.HasSuffix(t, "/") {
-		var err error
-		base, err = url.Parse(t)
-		if err != nil {
-			log.Fatalf("Invalid target URL (%s) parameter: %s", t, err)
-		}
+	// if strings.HasSuffix(t, "/") {
+	// 	var err error
+	// 	base, err = url.Parse(t)
+	// 	if err != nil {
+	// 		log.Fatalf("Invalid target URL (%s) parameter: %s", t, err)
+	// 	}
 
-	} else {
-		pathURL, err := url.Parse(p)
-		if err != nil {
-			log.Fatalf("Invalid path URL (%s) parameter: %s", t, err)
-		}
-		log.Printf("TEST: %s", path.Join(t, pathURL.Path))
-		base, err = url.Parse(path.Join(t, pathURL.Path))
-		if err != nil {
-			log.Fatalf("Unable to process paths: %s", err)
-		}
-		log.Printf("Target without provided basepath: %s", base.String())
+	// } else {
+	// 	pathURL, err := url.Parse(p)
+	// 	if err != nil {
+	// 		log.Fatalf("Invalid path URL (%s) parameter: %s", t, err)
+	// 	}
+	// 	log.Printf("TEST: %s", path.Join(t, pathURL.Path))
+	// 	base, err = url.Parse(path.Join(t, pathURL.Path))
+	// 	if err != nil {
+	// 		log.Fatalf("Unable to process paths: %s", err)
+	// 	}
+	// 	log.Printf("Target without provided basepath: %s", base.String())
+	// }
+	base, err := url.Parse(t)
+	if err != nil {
+		log.Fatalf("Unable to process target URL: %s", err)
 	}
+	base.Scheme = "http"
 	return base
 }
