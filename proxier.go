@@ -25,15 +25,8 @@ func main() {
 		if len(paths) != len(dests) {
 			log.Fatal("Same number of path -> destination mappings is required")
 		}
-
-		//Generate ReverseProxies
-		for i, p := range paths {
-			log.Printf("%s -> %s", p, dests[i])
-			base := makeTargetURL(p, dests[i])
-			http.HandleFunc(p, newRedirectProxy(base, rewriteHosts).ServeHTTP)
-		}
-		log.Printf("Listening on port %s", port)
-		log.Fatal(http.ListenAndServe(":"+port, nil))
+		registerProxyPaths(paths, dests, rewriteHosts)
+		startProxyServer(port)
 		return nil
 	}
 
@@ -47,6 +40,20 @@ func main() {
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func startProxyServer(port string) {
+	log.Printf("Listening on port %s", port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
+}
+
+func registerProxyPaths(paths, dests []string, rewriteHosts bool) {
+	//Generate ReverseProxies
+	for i, p := range paths {
+		log.Printf("%s -> %s", p, dests[i])
+		base := makeTargetURL(p, dests[i])
+		http.HandleFunc(p, newRedirectProxy(base, rewriteHosts).ServeHTTP)
 	}
 }
 
@@ -105,26 +112,6 @@ func singleJoiningSlash(a, b string) string {
 
 //I did this wrong. See here for a reference: https://stackoverflow.com/questions/32542282/how-do-i-rewrite-urls-in-a-proxy-response-in-nginx
 func makeTargetURL(p, t string) *url.URL {
-	var base *url.URL
-	// if strings.HasSuffix(t, "/") {
-	// 	var err error
-	// 	base, err = url.Parse(t)
-	// 	if err != nil {
-	// 		log.Fatalf("Invalid target URL (%s) parameter: %s", t, err)
-	// 	}
-
-	// } else {
-	// 	pathURL, err := url.Parse(p)
-	// 	if err != nil {
-	// 		log.Fatalf("Invalid path URL (%s) parameter: %s", t, err)
-	// 	}
-	// 	log.Printf("TEST: %s", path.Join(t, pathURL.Path))
-	// 	base, err = url.Parse(path.Join(t, pathURL.Path))
-	// 	if err != nil {
-	// 		log.Fatalf("Unable to process paths: %s", err)
-	// 	}
-	// 	log.Printf("Target without provided basepath: %s", base.String())
-	// }
 	base, err := url.Parse(t)
 	if err != nil {
 		log.Fatalf("Unable to process target URL: %s", err)
