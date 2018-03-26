@@ -9,6 +9,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/koding/websocketproxy"
 	"github.com/urfave/cli"
 )
 
@@ -53,7 +54,12 @@ func registerProxyPaths(paths, dests []string, rewriteHosts bool) {
 	for i, p := range paths {
 		log.Printf("%s -> %s", p, dests[i])
 		base := makeTargetURL(p, dests[i])
-		http.HandleFunc(p, newRedirectProxy(base, rewriteHosts).ServeHTTP)
+		if base.Scheme == "http" {
+			http.HandleFunc(p, newRedirectProxy(base, rewriteHosts).ServeHTTP)
+		} else if base.Scheme == "ws" {
+			log.Println("Found a websocket proxy.")
+			http.HandleFunc(p, websocketproxy.NewProxy(base).ServeHTTP)
+		}
 	}
 }
 
@@ -116,6 +122,6 @@ func makeTargetURL(p, t string) *url.URL {
 	if err != nil {
 		log.Fatalf("Unable to process target URL: %s", err)
 	}
-	base.Scheme = "http"
+	//base.Scheme = "http"
 	return base
 }
