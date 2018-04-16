@@ -3,7 +3,7 @@ pipeline:
     image: golang
     commands:
       - go get
-      - go build
+      - go build .
       - go test
   discord:
     image: appleboy/drone-discord
