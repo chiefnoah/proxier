@@ -7,3 +7,4 @@ TODO:
 
 * Support SSL/HTTPS
 * Document how to use it 
+* Drone CI Support
