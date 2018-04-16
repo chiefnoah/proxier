@@ -9,4 +9,4 @@ pipeline:
     image: appleboy/drone-discord
     webhook_id: 435302112583221248
     webhook_token: 5ROnyCUSeO0F9VGmTH52Xnhkx7sJjtKdajkKat1P6FmN2R6UMzZCT9lt8Bqix7dAAlWA
-    message: "Building proxier: {{ build.number }} "
+    message: "Building proxier: {{ build.number }}"
