@@ -122,6 +122,5 @@ func makeTargetURL(p, t string) *url.URL {
 	if err != nil {
 		log.Fatalf("Unable to process target URL: %s", err)
 	}
-	//base.Scheme = "http"
 	return base
 }
