@@ -1,10 +1,10 @@
 pipeline:
   build:
     image: golang
-      commands:
-        - go get
-        - go build
-        - go test
+    commands:
+      - go get
+      - go build
+      - go test
   discord:
     image: appleboy/drone-discord
     webhook_id: 435302112583221248
