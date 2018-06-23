@@ -1,12 +1,17 @@
 pipeline:
+  test:
+    image: golang
+    commands:
+      - go get -u
+      - go test -cover $(go list ./... | grep -v /vendor/)
+      - go test git.packetlostandfound.us/chiefnoah/proxier
   build:
     image: golang
     commands:
-      - go get
+      - go get -u
       - go build .
-      - go test
-  discord:
-    image: appleboy/drone-discord
-    webhook_id: 435302112583221248
-    webhook_token: 5ROnyCUSeO0F9VGmTH52Xnhkx7sJjtKdajkKat1P6FmN2R6UMzZCT9lt8Bqix7dAAlWA
-    message: "Building proxier: {{ build.number }}"
+  # discord:
+  #   image: appleboy/drone-discord
+  #   webhook_id: 435302112583221248
+  #   webhook_token: 5ROnyCUSeO0F9VGmTH52Xnhkx7sJjtKdajkKat1P6FmN2R6UMzZCT9lt8Bqix7dAAlWA
+  #   message: "Building proxier: {{ build.number }}"
