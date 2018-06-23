@@ -4,7 +4,7 @@ pipeline:
     commands:
       - go get -u
       - go test -cover $(go list ./... | grep -v /vendor/)
-      - go test git.packetlostandfound.us/chiefnoah/proxier
+      - go test github.com/chiefnoah/proxier
   build:
     image: golang
     commands:
